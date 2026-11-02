@@ -1,0 +1,4 @@
+# Compatibility alias. The six experiment YAML files are self-contained.
+defaults:
+  - MP1_baseline
+  - _self_

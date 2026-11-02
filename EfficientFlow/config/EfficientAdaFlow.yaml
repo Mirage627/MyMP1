@@ -1,0 +1,44 @@
+defaults:
+  - EfficientFlow
+  - _self_
+
+name: EfficientAdaFlow
+_target_: EfficientFlow.workspace.train_equi_workspace.TrainEquiWorkspace
+exp_name: equivariant_variance_adaptive
+
+policy:
+  _target_: EfficientFlow.policy.EfficientAdaFlow.EfficientAdaFlowPolicy
+  # Joint velocity/FABO training with a detached residual variance target.
+  flow_loss_weight: 2.0
+  fabo_weight: 1.0
+  fabo_delta: 0.01
+  variance_hidden_dim: 128
+  variance_loss_weight: 0.01
+  variance_warmup_steps: 1000
+  variance_training: joint
+  sampler: adaptive
+  adaptive_eta: 0.1
+  adaptive_max_steps: 8
+  variance_scale: 1.0
+  log_variance_min: -12.0
+  log_variance_max: 8.0
+  boundary_time_probability: 0.1
+  candidate_reset_interval: 10
+  fixed_steps: 1
+  num_of_trajectories: 5
+
+training:
+  resume: false
+  # Optional weights-only initialization from an EfficientFlow checkpoint.
+  init_checkpoint: null
+  init_use_ema: true
+  refit_normalizer: false
+  num_epochs: ${eval:'max(1, int(50000 / ${n_demo}))'}
+  rollout_every: ${eval:'max(1, int(1000 / ${n_demo}))'}
+  checkpoint_every: ${eval:'max(1, int(1000 / ${n_demo}))'}
+
+logging:
+  project: efficient_adaflow_${task_name}
+  resume: false
+  name: ${name}_demo${n_demo}_seed${training.seed}_${exp_name}
+  group: ${task_name}_demo${n_demo}
